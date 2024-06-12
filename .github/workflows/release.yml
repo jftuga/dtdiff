@@ -1,8 +1,8 @@
 on:
   workflow_dispatch:
-    push:
-      tags:
-        - "*"
+  push:
+    tags:
+      - "*"
 
 permissions:
   contents: write
