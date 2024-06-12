@@ -19,6 +19,7 @@ Golang package and command line tool to return or output the difference between 
 ## Installation
 
 * Library: `go get -u github.com/jftuga/dtdiff`
+* Run: `go install github.com/jftuga/dtdiff/cmd/dtdiff@latest`
 * Command line tool: Binaries for all platforms are provided in the [releases](https://github.com/jftuga/dtdiff/releases) section.
 * Homebrew (MacOS / Linux):
 * * `brew tap jftuga/homebrew-tap; brew update; brew install jftuga/tap/dtdiff`
