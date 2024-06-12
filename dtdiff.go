@@ -13,7 +13,7 @@ import (
 
 const (
 	PgmName    string = "dtdiff"
-	PgmVersion string = "1.0.1"
+	PgmVersion string = "1.0.3"
 	PgmUrl     string = "https://github.com/jftuga/dtdiff"
 )
 
