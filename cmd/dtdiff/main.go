@@ -26,10 +26,21 @@ Globals:
 {{FlagUsagesCustom .LocalFlags "nonewline" "help" "version" | trimTrailingWhitespaces}}{{end}}{{if .HasAvailableLocalFlags}}
 
 Flag Group 1 (mutually exclusive with Flag Group 2):
-{{FlagUsagesCustom .LocalFlags "start" "end" "stdin" | trimTrailingWhitespaces}}
+{{FlagUsagesCustom .LocalFlags "start" "end" "stdin" "brief" | trimTrailingWhitespaces}}
 
 Flag Group 2:
-{{FlagUsagesCustom .LocalFlags "from" "add" "sub" | trimTrailingWhitespaces}}{{end}}{{if .HasAvailableInheritedFlags}}
+{{FlagUsagesCustom .LocalFlags "from" "add" "sub" | trimTrailingWhitespaces}}
+
+Durations:
+years months weeks days
+hours minutes seconds milliseconds microseconds nanoseconds
+example: "1 year 2 months 3 days 4 hours 1 minute 6 seconds"
+
+Brief Durations: (dates are upper, times are lower)
+Y    M    W    D
+h    m    s    ms    us    ns
+examples: 1Y2M3W4D5h6m7s8ms9us1ns, "1Y 2M 3W 4D 5h 6m 7s 8ms 9us 1ns"
+{{end}}{{if .HasAvailableInheritedFlags}}
 
 Global Flags:
  {{.InheritedFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .HasHelpSubCommands}}
@@ -46,6 +57,7 @@ var (
 	sub           string
 	noNewline     bool
 	readFromStdin bool
+	brief         bool
 	usageMsg      string
 
 	rootCmd = &cobra.Command{
@@ -54,7 +66,7 @@ var (
 		Short:   "dtdiff: output the difference between date, time or duration",
 		Run: func(cmd *cobra.Command, args []string) {
 			if (len(start) > 0 && len(end) > 0) || readFromStdin {
-				computeStartEnd(start, end)
+				computeStartEnd(start, end, brief)
 				return
 			}
 			if len(from) > 0 && len(add) > 0 {
@@ -112,6 +124,8 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&sub, "sub", "S", "", "subtract: a duration to use with -F, such as '5 months 4 weeks 3 days'")
 	rootCmd.PersistentFlags().BoolVarP(&noNewline, "nonewline", "n", false, "do not output a newline character")
 	rootCmd.PersistentFlags().BoolVarP(&readFromStdin, "stdin", "i", false, "read from STDIN instead of using -s/-e")
+	rootCmd.PersistentFlags().BoolVarP(&brief, "brief", "b", false, "output in brief format, such as: 1Y2M3D4h5m6s7ms8us9ns")
+
 	rootCmd.MarkFlagsRequiredTogether("start", "end")
 	rootCmd.MarkFlagsMutuallyExclusive("add", "sub")
 	rootCmd.MarkFlagsMutuallyExclusive("stdin", "start")
@@ -125,6 +139,9 @@ func init() {
 	rootCmd.MarkFlagsMutuallyExclusive("add", "end")
 	rootCmd.MarkFlagsMutuallyExclusive("sub", "start")
 	rootCmd.MarkFlagsMutuallyExclusive("sub", "end")
+	rootCmd.MarkFlagsMutuallyExclusive("brief", "from")
+	rootCmd.MarkFlagsMutuallyExclusive("brief", "add")
+	rootCmd.MarkFlagsMutuallyExclusive("brief", "sub")
 
 	versionTemplate := fmt.Sprintf("%s v%s\n%s\n", dtdiff.PgmName, dtdiff.PgmVersion, dtdiff.PgmUrl)
 	rootCmd.SetVersionTemplate(versionTemplate)
@@ -158,12 +175,13 @@ func getInput() (string, string) {
 }
 
 // computeStartEnd used when -s and -e is given
-func computeStartEnd(start, end string) {
+func computeStartEnd(start, end string, brief bool) {
 	if readFromStdin {
 		start, end = getInput()
 	}
 
 	dt := dtdiff.New(start, end)
+	dt.SetBrief(brief)
 	format, _, err := dt.DtDiff()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
