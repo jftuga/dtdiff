@@ -12,7 +12,7 @@ func testStartEnd(t *testing.T, start, end, correct string) {
 		t.Error(err)
 	}
 	if format != correct {
-		t.Errorf("computed[%v] != correct[%v]", format, correct)
+		t.Errorf("[computed: %v] != [correct: %v]", format, correct)
 	}
 }
 
@@ -22,7 +22,7 @@ func testAddSubContains(t *testing.T, from, period, correctAdd, correctSub strin
 		t.Error(err)
 	}
 	if !strings.Contains(future, correctAdd) {
-		t.Errorf("computed[%v] does not contain: correct[%v]", future, correctAdd)
+		t.Errorf("[from: %v] [computed: %v] does not contain: [correct: %v]", from, future, correctAdd)
 	}
 
 	past, err := Sub(from, period)
@@ -30,7 +30,7 @@ func testAddSubContains(t *testing.T, from, period, correctAdd, correctSub strin
 		t.Error(err)
 	}
 	if !strings.Contains(past, correctSub) {
-		t.Errorf("computed[%v] does not contain: correct[%v]", past, correctSub)
+		t.Errorf("[from: %v] [computed: %v] does not contain: [correct: %v]", from, past, correctSub)
 	}
 }
 
@@ -86,71 +86,91 @@ func TestMilliSeconds(t *testing.T) {
 func TestDurationHours(t *testing.T) {
 	from := "11:00AM"
 	period := "5 hours"
+	briefPeriod := "5h"
 	correctAdd := " 16:00:00 "
 	correctSub := " 06:00:00 "
 	testAddSubContains(t, from, period, correctAdd, correctSub)
+	testAddSubContains(t, from, briefPeriod, correctAdd, correctSub)
 }
 
 func TestDurationMillisecondsMicroseconds(t *testing.T) {
 	from := "2024-01-01 00:00:00"
 	period := "1 minute 2 seconds 123 milliseconds 456 microseconds"
+	briefPeriod := "1m2s123ms456us"
 	correctAdd := "2024-01-01 00:01:02.123456"
 	correctSub := "2023-12-31 23:58:57.876544"
 	testAddSubContains(t, from, period, correctAdd, correctSub)
+	testAddSubContains(t, from, briefPeriod, correctAdd, correctSub)
 }
 
 func TestDurationHoursMinutesSeconds(t *testing.T) {
 	from := "2024-01-01 00:00:00"
 	period := "5 hours 5 minutes 5 seconds"
+	briefPeriod := "5h5m5s"
 	correctAdd := "2024-01-01 05:05:05"
 	correctSub := "2023-12-31 18:54:55"
 	testAddSubContains(t, from, period, correctAdd, correctSub)
+	testAddSubContains(t, from, briefPeriod, correctAdd, correctSub)
 }
 
 func TestDurationYearsMonthsDays(t *testing.T) {
 	from := "2000-01-01"
 	period := "5 years 2 months 10 days"
+	briefPeriod := "5Y2M10D"
 	correctAdd := "2005-03-11"
 	correctSub := "1994-10-22"
 	testAddSubContains(t, from, period, correctAdd, correctSub)
+	testAddSubContains(t, from, briefPeriod, correctAdd, correctSub)
+
 }
 
 func TestDurationYearsMonthsDaysHoursMinutesSeconds(t *testing.T) {
 	from := "2024-01-01"
 	period := "13 years 8 months 28 days 16 hours 15 minutes 15 seconds"
+	briefPeriod := "13Y8M28D16h15m15s"
 	correctAdd := "2037-09-29 16:15:15"
 	correctSub := "2010-04-02 07:44:45"
 	testAddSubContains(t, from, period, correctAdd, correctSub)
+	testAddSubContains(t, from, briefPeriod, correctAdd, correctSub)
+
 }
 
 func TestDurationWeeksDays(t *testing.T) {
 	from := "2024-01-01"
 	period := "10 weeks 2 days"
+	briefPeriod := "10W2D"
 	correctAdd := "2024-03-13"
 	correctSub := "2023-10-21"
 	testAddSubContains(t, from, period, correctAdd, correctSub)
+	testAddSubContains(t, from, briefPeriod, correctAdd, correctSub)
 }
 
 func TestDurationMonthsWeeksDays(t *testing.T) {
 	from := "2024-06-15"
 	period := "2 months 2 weeks 2 days"
+	briefPeriod := "2M2W2D"
 	correctAdd := "2024-08-31"
 	correctSub := "2024-03-30"
 	testAddSubContains(t, from, period, correctAdd, correctSub)
+	testAddSubContains(t, from, briefPeriod, correctAdd, correctSub)
 }
 
 func TestDurationYearsMonthsWeeksDays(t *testing.T) {
 	from := "2031-07-12"
 	period := "2 years 2 months 2 weeks 2 days"
+	briefPeriod := "2Y2M2W2D"
 	correctAdd := "2033-09-28"
 	correctSub := "2029-04-26"
 	testAddSubContains(t, from, period, correctAdd, correctSub)
+	testAddSubContains(t, from, briefPeriod, correctAdd, correctSub)
 }
 
 func TestDurationNanoseconds(t *testing.T) {
 	from := "2031-07-11 05:00:00"
 	period := "987654321 nanoseconds"
+	briefPeriod := "987654321ns"
 	correctAdd := "2031-07-11 05:00:00.987654321"
 	correctSub := "2031-07-11 04:59:59.012345679"
 	testAddSubContains(t, from, period, correctAdd, correctSub)
+	testAddSubContains(t, from, briefPeriod, correctAdd, correctSub)
 }

@@ -23,6 +23,14 @@ func main() {
 			continue
 		}
 		fmt.Printf("%21s %21s %13v %55s\n", start, end, duration, format)
+
+		dt.SetBrief(true)
+		format, duration, err = dt.DtDiff() // you can also use: format, _, err := dt.DtDiff()
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			continue
+		}
+		fmt.Printf("%21s %21s %13v %55s\n", start, end, duration, format)
 	}
 
 	fmt.Println()
