@@ -34,6 +34,28 @@ func testAddSubContains(t *testing.T, from, period, correctAdd, correctSub strin
 	}
 }
 
+func testAddSubWithRecurrence(t *testing.T, from, period string, correctAdd, correctSub []string, recurrence int) {
+	future, err := AddWithRecurrence(from, period, recurrence)
+	if err != nil {
+		t.Error(err)
+	}
+	for i := range len(future) {
+		if !strings.Contains(future[i], correctAdd[i]) {
+			t.Errorf("[from: %v] [computed: %v] does not contain: [correct: %v]", from, future, correctAdd)
+		}
+	}
+
+	past, err := SubWithRecurrence(from, period, recurrence)
+	if err != nil {
+		t.Error(err)
+	}
+	for j := range len(past) {
+		if !strings.Contains(past[j], correctSub[j]) {
+			t.Errorf("[from: %v] [computed: %v] does not contain: [correct: %v]", from, past, correctSub)
+		}
+	}
+}
+
 func TestTwoTimesSameDay(t *testing.T) {
 	start := "12:00:00"
 	end := "15:30:45"
@@ -173,4 +195,13 @@ func TestDurationNanoseconds(t *testing.T) {
 	correctSub := "2031-07-11 04:59:59.012345679"
 	testAddSubContains(t, from, period, correctAdd, correctSub)
 	testAddSubContains(t, from, briefPeriod, correctAdd, correctSub)
+}
+
+func TestWithRecurrence(t *testing.T) {
+	from := "2024-06-28T04:25:41Z"
+	period := "1M1W1h1m2s"
+	recurrence := 3
+	allCorrectAdd := []string{"2024-08-04 05:26:43", "2024-09-11 06:27:45", "2024-10-18 07:28:47"}
+	allCorrectSub := []string{"2024-05-21 03:24:39", "2024-04-14 02:23:37", "2024-03-07 01:22:35"}
+	testAddSubWithRecurrence(t, from, period, allCorrectAdd, allCorrectSub, recurrence)
 }

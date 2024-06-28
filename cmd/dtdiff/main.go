@@ -29,7 +29,7 @@ Flag Group 1 (mutually exclusive with Flag Group 2):
 {{FlagUsagesCustom .LocalFlags "start" "end" "stdin" "brief" | trimTrailingWhitespaces}}
 
 Flag Group 2:
-{{FlagUsagesCustom .LocalFlags "from" "add" "sub" | trimTrailingWhitespaces}}
+{{FlagUsagesCustom .LocalFlags "from" "add" "sub" "recurrence" | trimTrailingWhitespaces}}
 
 Durations:
 years months weeks days
@@ -55,6 +55,7 @@ var (
 	from          string
 	add           string
 	sub           string
+	recurrence    int
 	noNewline     bool
 	readFromStdin bool
 	brief         bool
@@ -69,12 +70,21 @@ var (
 				computeStartEnd(start, end, brief)
 				return
 			}
+
 			if len(from) > 0 && len(add) > 0 {
-				computeAddSub(from, add, 0)
+				if recurrence > 0 {
+					computeAddSubWithRecurrence(from, add, 0, recurrence)
+				} else {
+					computeAddSub(from, add, 0)
+				}
 				return
 			}
 			if len(from) > 0 && len(sub) > 0 {
-				computeAddSub(from, sub, 1)
+				if recurrence > 0 {
+					computeAddSubWithRecurrence(from, sub, 1, recurrence)
+				} else {
+					computeAddSub(from, sub, 1)
+				}
 				return
 			}
 			fmt.Fprintln(os.Stderr, usageMsg)
@@ -122,6 +132,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&from, "from", "F", "", "a base date, time or datetime to use with -A or -S")
 	rootCmd.PersistentFlags().StringVarP(&add, "add", "A", "", "add: a duration to use with -F, such as '1 day 2 hours 3 seconds'")
 	rootCmd.PersistentFlags().StringVarP(&sub, "sub", "S", "", "subtract: a duration to use with -F, such as '5 months 4 weeks 3 days'")
+	rootCmd.PersistentFlags().IntVarP(&recurrence, "recurrence", "R", 0, "recurrence interval")
 	rootCmd.PersistentFlags().BoolVarP(&noNewline, "nonewline", "n", false, "do not output a newline character")
 	rootCmd.PersistentFlags().BoolVarP(&readFromStdin, "stdin", "i", false, "read from STDIN instead of using -s/-e")
 	rootCmd.PersistentFlags().BoolVarP(&brief, "brief", "b", false, "output in brief format, such as: 1Y2M3D4h5m6s7ms8us9ns")
@@ -133,8 +144,11 @@ func init() {
 	rootCmd.MarkFlagsMutuallyExclusive("stdin", "from")
 	rootCmd.MarkFlagsMutuallyExclusive("stdin", "add")
 	rootCmd.MarkFlagsMutuallyExclusive("stdin", "sub")
+	rootCmd.MarkFlagsMutuallyExclusive("stdin", "recurrence")
 	rootCmd.MarkFlagsMutuallyExclusive("from", "start")
 	rootCmd.MarkFlagsMutuallyExclusive("from", "end")
+	rootCmd.MarkFlagsMutuallyExclusive("recurrence", "start")
+	rootCmd.MarkFlagsMutuallyExclusive("recurrence", "end")
 	rootCmd.MarkFlagsMutuallyExclusive("add", "start")
 	rootCmd.MarkFlagsMutuallyExclusive("add", "end")
 	rootCmd.MarkFlagsMutuallyExclusive("sub", "start")
@@ -142,6 +156,7 @@ func init() {
 	rootCmd.MarkFlagsMutuallyExclusive("brief", "from")
 	rootCmd.MarkFlagsMutuallyExclusive("brief", "add")
 	rootCmd.MarkFlagsMutuallyExclusive("brief", "sub")
+	rootCmd.MarkFlagsMutuallyExclusive("brief", "recurrence")
 
 	versionTemplate := fmt.Sprintf("%s v%s\n%s\n", dtdiff.PgmName, dtdiff.PgmVersion, dtdiff.PgmUrl)
 	rootCmd.SetVersionTemplate(versionTemplate)
@@ -218,5 +233,35 @@ func computeAddSub(from, period string, index int) {
 		fmt.Print(format)
 	} else {
 		fmt.Println(format)
+	}
+}
+
+// computeAddSubWithRecurrence is similar to computeAddSub
+// but returns a slice of date/time intervals
+// when -n is invoked, a comma-delimited output is used
+// index 0 = add; index = 1 = sub
+func computeAddSubWithRecurrence(from, period string, index, recurrence int) {
+	var format []string
+	var err error
+	if index == 0 {
+		format, err = dtdiff.AddWithRecurrence(from, period, recurrence)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+	} else {
+		format, err = dtdiff.SubWithRecurrence(from, period, recurrence)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+	}
+
+	if noNewline {
+		fmt.Print(strings.Join(format, ","))
+	} else {
+		for _, f := range format {
+			fmt.Println(f)
+		}
 	}
 }
