@@ -33,6 +33,8 @@ Supported date time formats are listed in: https://go.dev/src/time/format.go
 
 ```golang
 // import "github.com/jftuga/dtdiff"
+
+// example 1 - difference between two dates
 dt := dtdiff.New("2024-01-01 00:00:00", "2025-12-31 23:59:59")
 format, _, err := dt.DtDiff()
 fmt.Println(format) // 2 years 23 hours 59 minutes 59 seconds
@@ -41,12 +43,22 @@ dt.SetBrief(true)
 format, _, _ = dt.DtDiff()
 fmt.Println(format) // 2Y23h59m59s
 
+// example 2 - duration
 from := "2024-01-01 00:00:00"
 period := "1 day 1 hour 2 minutes 3 seconds" // can also use: "1D1h2m3s"
 future, _ := dtdiff.Add(from, period)
 fmt.Println(future) // 2024-01-02 01:02:03
 past, _ := dtdiff.Sub(from, period)
 fmt.Println(past) // 2023-12-30 22:57:57
+
+// example 3 duration with five intervals
+from := "2024-06-28T04:25:41Z"
+period := "1M1W1h1m2s"
+recurrence := 5
+all, _ := dtdiff.AddWithRecurrence(from, period, recurrence)
+for _, a := range all {
+    fmt.Println(a)
+}
 ```
 
 **Full Example:**
@@ -76,6 +88,7 @@ Flag Group 1 (mutually exclusive with Flag Group 2):
 Flag Group 2:
   -A, --add string	add: a duration to use with -F, such as '1 day 2 hours 3 seconds'
   -F, --from string	a base date, time or datetime to use with -A or -S
+  -R, --recurrence	recurrence interval
   -S, --sub string	subtract: a duration to use with -F, such as '5 months 4 weeks 3 days'
 
 Durations:
@@ -93,6 +106,8 @@ examples: 1Y2M3W4D5h6m7s8ms9us1ns, "1Y 2M 3W 4D 5h 6m 7s 8ms 9us 1ns"
 
 1. one line with start and end separated by a comma
 2. two lines with start on the first line and end on the second line
+
+**Note:** The `-n` switch along with `-R` will use a comma-delimited output
 
 ## Examples
 

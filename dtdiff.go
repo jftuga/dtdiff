@@ -13,7 +13,7 @@ import (
 
 const (
 	PgmName    string = "dtdiff"
-	PgmVersion string = "1.1.0"
+	PgmVersion string = "1.2.0"
 	PgmUrl     string = "https://github.com/jftuga/dtdiff"
 )
 
@@ -274,4 +274,32 @@ func Add(from, period string) (string, error) {
 // this is what is usually called by any consumers
 func Sub(from, period string) (string, error) {
 	return calculate(from, period, 1)
+}
+
+// calculateWithRecurrence similar to calculate, but returns
+// a slice of multiple past or future date/times at intervals of length 'period'
+// index==0 then Add; index==1 then Sub
+func calculateWithRecurrence(from, period string, index, recurrence int) ([]string, error) {
+	var all []string
+	var err error
+	for i := 0; i < recurrence; i++ {
+		from, err = calculate(from, period, index)
+		if err != nil {
+			return nil, err
+		}
+		all = append(all, from)
+	}
+	return all, nil
+}
+
+// AddWithRecurrence similar to Add, but returns a slice
+// of multiple future dates/times at intervals of length 'period'
+func AddWithRecurrence(from, period string, recurrence int) ([]string, error) {
+	return calculateWithRecurrence(from, period, 0, recurrence)
+}
+
+// SubWithRecurrence similar to Sub, but returns a slice
+// of multiple past dates/times at intervals of length 'period'
+func SubWithRecurrence(from, period string, recurrence int) ([]string, error) {
+	return calculateWithRecurrence(from, period, 1, recurrence)
 }

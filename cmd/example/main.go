@@ -9,6 +9,31 @@ import (
 	"time"
 )
 
+func testRecurrence() {
+	from := "2024-06-28T04:25:41Z"
+	period := "1M1W1h1m2s"
+	recurrence := 5
+	all, err := dtdiff.AddWithRecurrence(from, period, recurrence)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+	for _, a := range all {
+		fmt.Println(a)
+	}
+
+	fmt.Println()
+
+	all, err = dtdiff.SubWithRecurrence(from, period, recurrence)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+	for _, a := range all {
+		fmt.Println(a)
+	}
+}
+
 func main() {
 	allStarts := []string{"8:30AM", "11:12:13", "2024-03-04T00:00:00Z", "2024-01-01 13:00:00", "2020-01-01"}
 	allEnds := []string{"4:35PM", "14:15:16", "2024-06-12T23:59:59Z", "2024-02-29 13:00:00", time.Now().String()[:19]}
@@ -64,5 +89,11 @@ func main() {
 		}
 		fmt.Printf("%s %35s %37s %37s\n", from, period, future, past)
 	}
+
+	fmt.Println()
+	fmt.Println("==========================================================================================")
+	fmt.Println()
+
+	testRecurrence()
 
 }
