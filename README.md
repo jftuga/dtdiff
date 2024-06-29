@@ -1,7 +1,7 @@
 # dtdiff
 Golang package and command line tool to return or output the difference between date, time or duration
 
-`dtdiff` allows you to answer two types of questions:
+`dtdiff` allows you to answer three types of questions:
 
 1. What is the duration between two different dates and/or times?
 * start and end can be in various formats, such as:
@@ -15,6 +15,7 @@ Golang package and command line tool to return or output the difference between 
 * * 3 weeks 4 days 5 hours *(or 3W4D5h)*
 * * 8 months 7 days 6 hours 5 minutes 4 seconds *(or 8M7D6h5m4s)*
 * * 1 year 2 months 3 days 4 hours 5 minutes 6 second 7 milliseconds 8 microseconds 9 nanoseconds *(or 1Y2M3D4h5m6s7ms8us9ns)*
+3. Similar to question two, but repeats a period multiple times or until a certain datetime is encountered.
 
 ## Installation
 
@@ -51,11 +52,20 @@ fmt.Println(future) // 2024-01-02 01:02:03
 past, _ := dtdiff.Sub(from, period)
 fmt.Println(past) // 2023-12-30 22:57:57
 
-// example 3 duration with five intervals
+// example 3 - duration with five intervals
 from := "2024-06-28T04:25:41Z"
 period := "1M1W1h1m2s"
 recurrence := 5
-all, _ := dtdiff.AddWithRecurrence(from, period, recurrence)
+all, _ := dtdiff.AddWithRecurrence(from, period, recurrence) // can also use SubWithRecurrence
+for _, a := range all {
+    fmt.Println(a)
+}
+
+// example 4 - repeat interval until a datetime is encountered
+from := "2024-06-28T04:25:41Z"
+period := "1M1W1h1m2s"
+until := "2025-01-01 09:30:51"
+all, err := dtdiff.AddUntil(from, until, period) // can also use SubUntil
 for _, a := range all {
     fmt.Println(a)
 }
@@ -88,8 +98,9 @@ Flag Group 1 (mutually exclusive with Flag Group 2):
 Flag Group 2:
   -A, --add string	add: a duration to use with -F, such as '1 day 2 hours 3 seconds'
   -F, --from string	a base date, time or datetime to use with -A or -S
-  -R, --recurrence	recurrence interval
+  -R, --recurrence int	repeat period this number of times (mutually exclusive with -U)
   -S, --sub string	subtract: a duration to use with -F, such as '5 months 4 weeks 3 days'
+  -U, --until string	repeat period until date/time is exceeded
 
 Durations:
 years months weeks days
@@ -100,6 +111,7 @@ Brief Durations: (dates are upper, times are lower)
 Y    M    W    D
 h    m    s    ms    us    ns
 examples: 1Y2M3W4D5h6m7s8ms9us1ns, "1Y 2M 3W 4D 5h 6m 7s 8ms 9us 1ns"
+
 ```
 
 **Note:** The `-i` switch can accept two different types of input:
@@ -178,6 +190,19 @@ $ dtdiff -F 2024-01-01 -A "1 hour 30 minutes 45 seconds"
 # can also use "milliseconds", "microseconds"
 $ dtdiff -F "2024-01-02 01:02:03" -S "1 day 1 hour 2 minutes 3 seconds"
 2024-01-01 00:00:00 -0500 EST
+
+# output multiple occurrences: add 5 weeks, for 3 intervals
+$ dtdiff -F "2024-01-02" -A "5W" -R 3
+2024-02-06 00:00:00 -0500 EST
+2024-03-12 00:00:00 -0400 EDT
+2024-04-16 00:00:00 -0400 EDT
+
+# repeat until a certain datetime is encountered: subtract 5 minutes until 15:00
+$ dtdiff -F 15:20 -S 5m -U 15:00
+2024-06-30 15:15:00 -0400 EDT
+2024-06-30 15:10:00 -0400 EDT
+2024-06-30 15:05:00 -0400 EDT
+2024-06-30 15:00:00 -0400 EDT
 ```
 
 ## LICENSE

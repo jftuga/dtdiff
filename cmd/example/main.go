@@ -9,6 +9,21 @@ import (
 	"time"
 )
 
+func testUntil() {
+	from := "2024-06-28T04:25:41Z"
+	period := "1M1W1h1m2s"
+	until := "2025-01-01 09:30:51"
+
+	all, err := dtdiff.AddUntil(from, until, period)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+	for _, a := range all {
+		fmt.Println(a)
+	}
+}
+
 func testRecurrence() {
 	from := "2024-06-28T04:25:41Z"
 	period := "1M1W1h1m2s"
@@ -90,10 +105,11 @@ func main() {
 		fmt.Printf("%s %35s %37s %37s\n", from, period, future, past)
 	}
 
+	testRecurrence()
+
 	fmt.Println()
 	fmt.Println("==========================================================================================")
 	fmt.Println()
 
-	testRecurrence()
-
+	testUntil()
 }
