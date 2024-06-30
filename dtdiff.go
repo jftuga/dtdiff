@@ -13,7 +13,7 @@ import (
 
 const (
 	PgmName    string = "dtdiff"
-	PgmVersion string = "1.2.0"
+	PgmVersion string = "1.3.0"
 	PgmUrl     string = "https://github.com/jftuga/dtdiff"
 )
 
@@ -302,4 +302,55 @@ func AddWithRecurrence(from, period string, recurrence int) ([]string, error) {
 // of multiple past dates/times at intervals of length 'period'
 func SubWithRecurrence(from, period string, recurrence int) ([]string, error) {
 	return calculateWithRecurrence(from, period, 1, recurrence)
+}
+
+// calculateUntil similar to calculate, but returns
+// a slice of multiple past or future date/times at intervals until
+// the 'until' date/time is exceeded
+// index==0 then Add; index==1 then Sub
+func calculateUntil(from, until, period string, index int) ([]string, error) {
+	var all []string
+	var f, u time.Time
+	var err error
+
+	u, err = now.Parse(until)
+	if err != nil {
+		return nil, err
+	}
+
+	for {
+		from, err = calculate(from, period, index)
+		if err != nil {
+			return nil, err
+		}
+
+		f, err = now.Parse(from)
+		if err != nil {
+			return nil, err
+		}
+
+		if index == 0 {
+			if f.After(u) {
+				break
+			}
+		} else {
+			if f.Before(u) {
+				break
+			}
+		}
+		all = append(all, from)
+	}
+	return all, nil
+}
+
+// AddUntil similar to Add, but returns a slice
+// of multiple future dates/times until date/time exceed 'until'
+func AddUntil(from, until, period string) ([]string, error) {
+	return calculateUntil(from, until, period, 0)
+}
+
+// SubUntil similar to Sub, but returns a slice
+// of multiple past dates/times until date/time exceed 'until'
+func SubUntil(from, until, period string) ([]string, error) {
+	return calculateUntil(from, until, period, 1)
 }

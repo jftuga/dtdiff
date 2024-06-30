@@ -41,7 +41,7 @@ func testAddSubWithRecurrence(t *testing.T, from, period string, correctAdd, cor
 	}
 	for i := range len(future) {
 		if !strings.Contains(future[i], correctAdd[i]) {
-			t.Errorf("[from: %v] [computed: %v] does not contain: [correct: %v]", from, future, correctAdd)
+			t.Errorf("[from: %v] [computed: %v] does not contain: [correct: %v]", from, future[i], correctAdd[i])
 		}
 	}
 
@@ -51,7 +51,31 @@ func testAddSubWithRecurrence(t *testing.T, from, period string, correctAdd, cor
 	}
 	for j := range len(past) {
 		if !strings.Contains(past[j], correctSub[j]) {
-			t.Errorf("[from: %v] [computed: %v] does not contain: [correct: %v]", from, past, correctSub)
+			t.Errorf("[from: %v] [computed: %v] does not contain: [correct: %v]", from, past[j], correctSub[j])
+		}
+	}
+}
+
+func testAddUntil(t *testing.T, from, until, period string, correctAdd []string) {
+	future, err := AddUntil(from, until, period)
+	if err != nil {
+		t.Error(err)
+	}
+	for i := range len(future) {
+		if !strings.Contains(future[i], correctAdd[i]) {
+			t.Errorf("[from: %v] [computed: %v] does not contain: [correct: %v]", from, future[i], correctAdd[i])
+		}
+	}
+}
+
+func testSubUntil(t *testing.T, from, until, period string, correctSub []string) {
+	past, err := SubUntil(from, until, period)
+	if err != nil {
+		t.Error(err)
+	}
+	for i := range len(past) {
+		if !strings.Contains(past[i], correctSub[i]) {
+			t.Errorf("[from: %v] [computed: %v] does not contain: [correct: %v]", from, past[i], correctSub[i])
 		}
 	}
 }
@@ -204,4 +228,20 @@ func TestWithRecurrence(t *testing.T) {
 	allCorrectAdd := []string{"2024-08-04 05:26:43", "2024-09-11 06:27:45", "2024-10-18 07:28:47"}
 	allCorrectSub := []string{"2024-05-21 03:24:39", "2024-04-14 02:23:37", "2024-03-07 01:22:35"}
 	testAddSubWithRecurrence(t, from, period, allCorrectAdd, allCorrectSub, recurrence)
+}
+
+func TestAddUntil(t *testing.T) {
+	from := "2024-06-28T04:25:41Z"
+	period := "1M1W1h1m2s"
+	until := "2024-10-18 07:28:47"
+	allCorrectAdd := []string{"2024-08-04 05:26:43", "2024-09-11 06:27:45", "2024-10-18 07:28:47", "x"}
+	testAddUntil(t, from, until, period, allCorrectAdd)
+}
+
+func TestSubUntil(t *testing.T) {
+	from := "2024-10-18 07:28:47"
+	period := "1M1W1h1m2s"
+	until := "2024-05-28T04:25:41Z"
+	allCorrectSub := []string{"2024-09-11 06:27:45", "2024-08-04 05:26:43", "2024-06-27 04:25:41"}
+	testSubUntil(t, from, until, period, allCorrectSub)
 }
