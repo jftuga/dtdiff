@@ -13,37 +13,27 @@ import (
 
 const (
 	PgmName    string = "dtdiff"
-	PgmVersion string = "1.3.0"
+	PgmVersion string = "1.3.1"
 	PgmUrl     string = "https://github.com/jftuga/dtdiff"
 )
 
 const (
 	expanded  string = `(\d+)\s(years?|months?|weeks?|days?|hours?|minutes?|seconds?|milliseconds?|microseconds?|nanoseconds?)`
 	wordsOnly string = `\b[a-zA-Z]+\b`
-	dupMsg    string = "Hint: duplicate durations not allowed"
+	dupMsg    string = "Hint: duplicate durations not allowed; dates in uppercase; times in lowercase"
 )
 
 var carbonFuncs = map[string]interface{}{
-	"years":        [2]interface{}{carbon.Carbon.AddYears, carbon.Carbon.SubYears},
-	"months":       [2]interface{}{carbon.Carbon.AddMonths, carbon.Carbon.SubMonths},
-	"weeks":        [2]interface{}{carbon.Carbon.AddWeeks, carbon.Carbon.SubWeeks},
-	"days":         [2]interface{}{carbon.Carbon.AddDays, carbon.Carbon.SubDays},
-	"hours":        [2]interface{}{carbon.Carbon.AddHours, carbon.Carbon.SubHours},
-	"minutes":      [2]interface{}{carbon.Carbon.AddMinutes, carbon.Carbon.SubMinutes},
-	"seconds":      [2]interface{}{carbon.Carbon.AddSeconds, carbon.Carbon.SubSeconds},
-	"milliseconds": [2]interface{}{carbon.Carbon.AddMilliseconds, carbon.Carbon.SubMilliseconds},
-	"microseconds": [2]interface{}{carbon.Carbon.AddMicroseconds, carbon.Carbon.SubMicroseconds},
-	"nanoseconds":  [2]interface{}{carbon.Carbon.AddNanoseconds, carbon.Carbon.SubNanoseconds},
-	"year":         [2]interface{}{carbon.Carbon.AddYears, carbon.Carbon.SubYears},
-	"month":        [2]interface{}{carbon.Carbon.AddMonths, carbon.Carbon.SubMonths},
-	"week":         [2]interface{}{carbon.Carbon.AddWeeks, carbon.Carbon.SubWeeks},
-	"day":          [2]interface{}{carbon.Carbon.AddDays, carbon.Carbon.SubDays},
-	"hour":         [2]interface{}{carbon.Carbon.AddHours, carbon.Carbon.SubHours},
-	"minute":       [2]interface{}{carbon.Carbon.AddMinutes, carbon.Carbon.SubMinutes},
-	"second":       [2]interface{}{carbon.Carbon.AddSeconds, carbon.Carbon.SubSeconds},
-	"millisecond":  [2]interface{}{carbon.Carbon.AddMilliseconds, carbon.Carbon.SubMilliseconds},
-	"microsecond":  [2]interface{}{carbon.Carbon.AddMicroseconds, carbon.Carbon.SubMicroseconds},
-	"nanosecond":   [2]interface{}{carbon.Carbon.AddNanoseconds, carbon.Carbon.SubNanoseconds},
+	"year":        [2]interface{}{carbon.Carbon.AddYears, carbon.Carbon.SubYears},
+	"month":       [2]interface{}{carbon.Carbon.AddMonths, carbon.Carbon.SubMonths},
+	"week":        [2]interface{}{carbon.Carbon.AddWeeks, carbon.Carbon.SubWeeks},
+	"day":         [2]interface{}{carbon.Carbon.AddDays, carbon.Carbon.SubDays},
+	"hour":        [2]interface{}{carbon.Carbon.AddHours, carbon.Carbon.SubHours},
+	"minute":      [2]interface{}{carbon.Carbon.AddMinutes, carbon.Carbon.SubMinutes},
+	"second":      [2]interface{}{carbon.Carbon.AddSeconds, carbon.Carbon.SubSeconds},
+	"millisecond": [2]interface{}{carbon.Carbon.AddMilliseconds, carbon.Carbon.SubMilliseconds},
+	"microsecond": [2]interface{}{carbon.Carbon.AddMicroseconds, carbon.Carbon.SubMicroseconds},
+	"nanosecond":  [2]interface{}{carbon.Carbon.AddNanoseconds, carbon.Carbon.SubNanoseconds},
 }
 
 var expandedRegexp = regexp.MustCompile(expanded)
@@ -56,6 +46,8 @@ type DtDiff struct {
 }
 
 func New(start, end string) *DtDiff {
+	start = convertRelativeDateToActual(start)
+	end = convertRelativeDateToActual(end)
 	return &DtDiff{Start: start, End: end, Diff: 0, Brief: false}
 }
 
@@ -129,12 +121,36 @@ func validatePeriod(period string) error {
 	matches := wordsOnlyRe.FindAllString(period, -1)
 	for _, word := range matches {
 		// fmt.Println("word:", word)
-		_, ok := carbonFuncs[word]
+		_, ok := carbonFuncs[removeTrailingS(word)]
 		if !ok {
 			return fmt.Errorf("[validatePeriod] Invalid period: %s", word)
 		}
 	}
 	return nil
+}
+
+// convertRelativeDateToActual converts "yesterday", "today", "tomorrow"
+// into actual dates
+func convertRelativeDateToActual(from string) string {
+	switch strings.ToLower(from) {
+	case "now":
+		return carbon.Now().String()
+	case "today":
+		return carbon.Now().String()
+	case "yesterday":
+		return carbon.Yesterday().String()
+	case "tomorrow":
+		return carbon.Tomorrow().String()
+	}
+	return from
+}
+
+// removeTrailingS convert plural to singular, such as "hours" to "hour"
+func removeTrailingS(s string) string {
+	if len(s) > 0 && s[len(s)-1] == 's' {
+		return s[:len(s)-1]
+	}
+	return s
 }
 
 // calculate Add or Sub a duration of time "period" from the "from" variable
@@ -153,6 +169,7 @@ func calculate(from, period string, index int) (string, error) {
 		}
 	}
 
+	from = convertRelativeDateToActual(from)
 	f, err := now.Parse(from)
 	if err != nil {
 		return "", err
@@ -175,7 +192,7 @@ func calculate(from, period string, index int) (string, error) {
 		}
 		word := periodMatches[i][2]
 		// to understand this line of code, read: ChatGPT_Explanation.md
-		to = carbonFuncs[word].([2]interface{})[index].(func(carbon.Carbon, int) carbon.Carbon)(to, num)
+		to = carbonFuncs[removeTrailingS(word)].([2]interface{})[index].(func(carbon.Carbon, int) carbon.Carbon)(to, num)
 		// fmt.Printf("    to: %v | %v | %v\n", num, word, to)
 	}
 	return to.ToString(), nil
@@ -313,11 +330,13 @@ func calculateUntil(from, until, period string, index int) ([]string, error) {
 	var f, u time.Time
 	var err error
 
+	until = convertRelativeDateToActual(until)
 	u, err = now.Parse(until)
 	if err != nil {
 		return nil, err
 	}
 
+	from = convertRelativeDateToActual(from)
 	for {
 		from, err = calculate(from, period, index)
 		if err != nil {
