@@ -112,6 +112,13 @@ Y    M    W    D
 h    m    s    ms    us    ns
 examples: 1Y2M3W4D5h6m7s8ms9us1ns, "1Y 2M 3W 4D 5h 6m 7s 8ms 9us 1ns"
 
+Relative Dates:
+for the -s, -e, -F, and -U flags, you can use these shortcuts:
+now
+today (returns same value as now)
+yesterday
+tomorrow
+example: dtdiff -F today -A 7h10m -U tomorrow
 ```
 
 **Note:** The `-i` switch can accept two different types of input:
@@ -203,6 +210,16 @@ $ dtdiff -F 15:20 -S 5m -U 15:00
 2024-06-30 15:10:00 -0400 EDT
 2024-06-30 15:05:00 -0400 EDT
 2024-06-30 15:00:00 -0400 EDT
+
+# use relative date until tomorrow
+$ dtdiff -F today -A 7h10m -U tomorrow 
+2024-07-03 14:29:28 -0400 EDT
+2024-07-03 21:39:28 -0400 EDT
+2024-07-04 04:49:28 -0400 EDT
+
+# use relative start date with brief output
+$ dtdiff -s today -e 2024-07-07 -b
+3D16h38m47s
 ```
 
 ## LICENSE

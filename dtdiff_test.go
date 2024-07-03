@@ -1,6 +1,8 @@
 package dtdiff
 
 import (
+	"fmt"
+	"github.com/golang-module/carbon/v2"
 	"strings"
 	"testing"
 )
@@ -234,7 +236,7 @@ func TestAddUntil(t *testing.T) {
 	from := "2024-06-28T04:25:41Z"
 	period := "1M1W1h1m2s"
 	until := "2024-10-18 07:28:47"
-	allCorrectAdd := []string{"2024-08-04 05:26:43", "2024-09-11 06:27:45", "2024-10-18 07:28:47", "x"}
+	allCorrectAdd := []string{"2024-08-04 05:26:43", "2024-09-11 06:27:45", "2024-10-18 07:28:47"}
 	testAddUntil(t, from, until, period, allCorrectAdd)
 }
 
@@ -244,4 +246,37 @@ func TestSubUntil(t *testing.T) {
 	until := "2024-05-28T04:25:41Z"
 	allCorrectSub := []string{"2024-09-11 06:27:45", "2024-08-04 05:26:43", "2024-06-27 04:25:41"}
 	testSubUntil(t, from, until, period, allCorrectSub)
+}
+
+func TestRelativeStartEnd(t *testing.T) {
+	start := "yesterday"
+	end := "Today"
+	correct := "1 day"
+	testStartEnd(t, start, end, correct)
+
+	start = "Yesterday"
+	end = "tomorrow"
+	correct = "2 days"
+	testStartEnd(t, start, end, correct)
+
+	start = "now"
+	end = "today"
+	correct = "0 seconds"
+	testStartEnd(t, start, end, correct)
+
+	start = "today"
+	end = "tomorrow"
+	correct = "1 day"
+	testStartEnd(t, start, end, correct)
+}
+
+func TestRelativeUntil(t *testing.T) {
+	from := carbon.Now().StartOfDay().ToDateTimeString()
+	period := "7h59m1s"
+	until := "tomorrow"
+	allCorrectAdd := []string{"", "", ""}
+	allCorrectAdd[0] = fmt.Sprintf("%s", strings.Replace(from, "00:00:00", "07:59:01", 1))
+	allCorrectAdd[1] = fmt.Sprintf("%s", strings.Replace(from, "00:00:00", "15:58:02", 1))
+	allCorrectAdd[2] = fmt.Sprintf("%s", strings.Replace(from, "00:00:00", "23:57:03", 1))
+	testAddUntil(t, from, until, period, allCorrectAdd)
 }

@@ -40,8 +40,15 @@ Brief Durations: (dates are upper, times are lower)
 Y    M    W    D
 h    m    s    ms    us    ns
 examples: 1Y2M3W4D5h6m7s8ms9us1ns, "1Y 2M 3W 4D 5h 6m 7s 8ms 9us 1ns"
-{{end}}{{if .HasAvailableInheritedFlags}}
 
+Relative Dates:
+for the -s, -e, -F, and -U flags, you can use these shortcuts:
+now
+today (returns same value as now)
+yesterday
+tomorrow
+example: dtdiff -F today -A 7h10m -U tomorrow
+{{end}}{{if .HasAvailableInheritedFlags}}
 Global Flags:
  {{.InheritedFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .HasHelpSubCommands}}
 Additional help topics:{{range .Commands}}{{if .IsAdditionalHelpTopicCommand}}
