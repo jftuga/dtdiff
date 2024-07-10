@@ -1,3 +1,24 @@
+# DEPRECATION NOTICE
+
+This project has been superseded by another one of my projects:
+
+[DateTimeMate](https://github.com/jftuga/DateTimeMate)
+
+**Please use that instead as it has better functionality.**
+
+### Reasons behind this change:
+
+* `dtdiff` is actually the name of a [Debian binary](https://manpages.debian.org/testing/device-tree-compiler/dtdiff.1.en.html) as discussed in this [issue](https://github.com/jftuga/dtdiff/issues/5).
+* I initially wrote this program to find the difference between two date/times. However, adding or subtracting a duration from a date/time turned out to be a more interesting problem to solve.
+* I went down a cobra CLI & Usage rabbit hole, especially with custom output, thus making the code more complicated than necessary. This is no longer needed in the new code base.
+* This library's features were bolted on instead of rebuilt from the ground up. [DateTimeMate](https://github.com/jftuga/DateTimeMate) uses the [golang options pattern](https://dave.cheney.net/2014/10/17/functional-options-for-friendly-apis) which should easily allow for backward-compatible library updates in the future.
+* In the new code base, I decided to use the word `repeat` instead of `recurrence`, which is more concise & understandable.
+
+___
+
+
+
+
 # dtdiff
 Golang package and command line tool to return or output the difference between date, time or duration
 
@@ -212,7 +233,7 @@ $ dtdiff -F 15:20 -S 5m -U 15:00
 2024-06-30 15:00:00 -0400 EDT
 
 # use relative date until tomorrow
-$ dtdiff -F today -A 7h10m -U tomorrow 
+$ dtdiff -F today -A 7h10m -U tomorrow
 2024-07-03 14:29:28 -0400 EDT
 2024-07-03 21:39:28 -0400 EDT
 2024-07-04 04:49:28 -0400 EDT
